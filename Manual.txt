@@ -1,0 +1,95 @@
+================================================================================
+                    MANUAL DO USUÁRIO - POKEDAY
+================================================================================
+
+1. VISÃO GERAL
+   O "Pokeday" é um gerenciador de tarefas gamificado com o visual de uma
+   Pokédex da região de Kalos. O objetivo é transformar a rotina diária em
+   um jogo de RPG, onde completar tarefas evolui seus Pokémons.
+
+2. ESTRUTURA DA TELA PRINCIPAL
+   A interface imita um dispositivo físico (Pokédex) com três seções principais:
+   
+   A. Topo (Status):
+      - Mostra o Pokémon "Ativo" da sua equipe.
+      - Exibe Nome, Área vinculada (ex: Carreira), Nível atual e Barra de XP.
+      - Ao clicar nas Pokébolas pequenas (Party Bar), você troca o Pokémon ativo.
+
+   B. Tela Central (Conteúdo):
+      Possui 3 abas de navegação no rodapé:
+      - HOME: Lista de Missões, Botões de Falhas e Insígnias.
+      - LOJA: Itens que podem ser comprados com o ouro ganho nas missões.
+      - DADOS: Gráfico de evolução de XP (últimos 7 dias) e Histórico (Agenda).
+
+   C. Botões de Navegação:
+      Alternam entre as abas HOME, LOJA e DADOS.
+
+3. COMO JOGAR (MECÂNICA)
+
+   3.1. Missões (Tarefas):
+      - As missões aparecem na aba HOME.
+      - Ao clicar em uma missão, uma janela de confirmação abre.
+      - Você pode adicionar uma nota (opcional) e confirmar.
+      - RECOMPENSA: Ganha XP (para o Pokémon vinculado ou ativo) e Ouro.
+      - Se a missão for do tipo "Diária", ela desaparece após ser feita e
+        pode reaparecer no dia seguinte (dependendo da configuração manual).
+
+   3.2. Vínculo de Itens:
+      - Cada Pokémon cuida de uma área da vida (ex: Charmander = Carreira).
+      - Se uma missão estiver vinculada a "Carreira", o XP vai para o Charmander,
+        mesmo que o Pokémon ativo na tela seja outro.
+      - Se não houver vínculo, o XP vai para o Pokémon que estiver ativo no momento.
+
+   3.3. Evolução:
+      - Quando a barra de XP enche, o Pokémon sobe de nível.
+      - O XP necessário para o próximo nível aumenta progressivamente.
+      - Ao atingir certos níveis (ex: 16, 36), o Pokémon evolui de forma
+        (muda a imagem e o nome automaticamente).
+
+   3.4. Falhas:
+      - Se você deixar de fazer algo ou cometer um erro, clique no botão de Falha.
+      - Isso remove XP de TODOS os Pokémons da equipe e registra no histórico.
+      - A Pokédex treme (efeito visual) para indicar o dano.
+
+   3.5. Insígnias (Conquistas Diárias):
+      - Existem 7 slots de insígnias, um para cada dia da semana.
+      - Cada dia tem uma meta de missões a cumprir (ex: 5 missões na Segunda).
+      - Ao atingir a meta do dia, a insígnia se desbloqueia (acende e ganha cor).
+
+4. PAINEL DE ADMINISTRAÇÃO (CONFIGURAÇÕES)
+
+   No final da página, há uma aba "▼ CONFIGURAÇÕES (ADMIN)". Clicar nela abre
+   o painel de controle para personalizar o jogo.
+
+   4.1. Gerenciamento de Save (BACKUP):
+      - Exportar Save: Baixa um arquivo .json com todo seu progresso.
+      - Importar Save: Restaura seu progresso a partir de um arquivo .json.
+      - *Dica: Faça backups semanais!*
+
+   4.2. Meus Pokémons:
+      - ID API: Digite o número da Pokédex Nacional (ex: 150 para Mewtwo).
+      - Botão Lupa (🔍): Busca automaticamente o Nome e a Imagem na PokéAPI.
+      - Apelido/Área: Defina o nome e a área que ele representa (ex: Saúde).
+
+   4.3. Missões:
+      - Crie novas tarefas definindo Nome, Ícone (Emoji ou URL), XP ganho,
+        Ouro ganho, Vínculo (qual área afeta) e Tipo (Diária/História).
+      - Botão X remove a missão.
+
+   4.4. Falhas:
+      - Configure as punições (ex: "Comi besteira", Dano: -20 XP).
+
+   4.5. Conquistas (7 Slots):
+      - Configure o nome da insígnia de cada dia (Domingo a Sábado),
+        a meta (quantidade de tarefas) e a imagem/emoji.
+
+   4.6. Botão Resetar Fábrica:
+      - Apaga TUDO e volta para o estado inicial do sistema. Cuidado!
+
+5. DETALHES TÉCNICOS
+   - Os dados são salvos no "Local Storage" do seu navegador.
+   - Se limpar o cache do navegador, os dados somem (use Exportar Save!).
+   - A aplicação usa a PokéAPI para buscar imagens. É necessário internet
+     apenas para carregar as imagens e o fundo.
+
+================================================================================

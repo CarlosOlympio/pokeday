@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokeDay</title>
+    
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- RESET --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            padding: 20px; 
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh;
+            background-color: #2c3e50; 
+            position: relative;
+        }
+
+        /* --- BACKGROUND FIXO --- */
+        .bg-fixed {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: url('https://archives.bulbagarden.net/media/upload/8/8a/Kalos_alt.png') no-repeat center center;
+            background-size: cover;
+            filter: blur(4px);
+            transform: scale(1.05);
+        }
+
+        /* --- POKÉDEX CORPO --- */
+        .pokedex-container {
+            width: 100%; max-width: 900px;
+            height: 1000px;
+            background: #dc0a2d;
+            border: 6px solid #000;
+            border-radius: 30px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+            position: relative; margin-bottom: 40px;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        /* ANIMAÇÕES */
+        .shake-effect { animation: shake 0.4s ease-in-out; border: 6px solid #ff0000 !important; }
+        .success-effect, .success-effect .pokedex-head, .success-effect .screen-area { animation: flash-green 0.5s ease-out; }
+        
+        @keyframes shake { 0% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(4px); } }
+        @keyframes flash-green { 0% { background-color: #dc0a2d; } 50% { background-color: #4caf50; } 100% { background-color: #dc0a2d; } }
+
+        /* --- CABEÇALHO FÍSICO --- */
+        .pokedex-head { height: 160px; width: 100%; background: #dc0a2d; border-bottom: 6px solid #000; position: relative; box-shadow: inset 0 -10px 15px rgba(0,0,0,0.2); flex-shrink: 0; }
+        .lens-blue { width: 90px; height: 90px; background: #1976d2; border: 6px solid #000; border-radius: 50%; position: absolute; top: 35px; left: 40px; box-shadow: inset 10px 10px 20px rgba(255,255,255,0.5), 0 0 15px rgba(0,0,0,0.3); z-index: 2; }
+        .lens-blue::after { content: ''; position: absolute; top: 15px; left: 15px; width: 30px; height: 30px; background: rgba(255,255,255,0.6); border-radius: 50%; filter: blur(2px); }
+        .led-container { position: absolute; top: 40px; left: 150px; display: flex; gap: 15px; }
+        .led { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #000; box-shadow: inset 2px 2px 5px rgba(255,255,255,0.5); }
+        .led-red { background: #f44336; } .led-yellow { background: #ffeb3b; } .led-green { background: #4caf50; }
+        .speaker-grill { position: absolute; bottom: 20px; right: 40px; width: 120px; height: 60px; background-image: radial-gradient(#333 25%, transparent 25%); background-size: 8px 8px; opacity: 0.6; }
+
+        /* --- TELA --- */
+        .screen-area { flex-grow: 1; background: #dc0a2d; padding: 20px 30px 30px 30px; display: flex; flex-direction: column; overflow: hidden; }
+        .info-panel { background: #dedede; border: 4px solid #000; border-radius: 15px 15px 40px 15px; padding: 15px; box-shadow: inset 3px 3px 5px rgba(0,0,0,0.2); flex-shrink: 0; margin-bottom: 20px; text-align: center; }
+        .rpg-title { font-family: 'Press Start 2P'; font-size: 1.0em; margin-bottom: 10px; text-transform: uppercase; text-shadow: 2px 2px 0px #aaa; }
+        .party-bar { display: flex; justify-content: space-evenly; align-items: center; margin-bottom: 10px; background: #222; padding: 8px; border-radius: 30px; border: 3px solid #000; }
+        .party-ball { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #555; background: #444; cursor: pointer; transition: 0.2s; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5); }
+        .party-ball:hover { transform: scale(1.1); border-color: #fff; }
+        .party-ball.active { background: #f00; border-color: #ffd700; box-shadow: 0 0 10px #f00; }
+        .party-ball img { width: 30px; height: 30px; image-rendering: pixelated; }
+        .poke-sprite { width: 90px; height: 90px; object-fit: contain; image-rendering: pixelated; margin: 5px auto; animation: float 3s infinite ease-in-out; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
+
+        /* STATUS BOX */
+        .stats-box { background: #111; color: #0f0; padding: 12px; border-radius: 5px; font-family: 'Press Start 2P', cursive; font-size: 0.6em; text-align: left; border: 2px solid #000; margin-top: 5px; }
+        .stat-row-top { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+        .stat-name { font-size: 1.3em; margin-bottom: 5px; display: block; color: #0f0; }
+        .stat-item { font-size: 0.9em; color: #0f0; opacity: 0.8; }
+        .stat-lvl { font-size: 1.1em; color: #0f0; }
+        .stat-xp-txt { text-align: right; margin-top: 5px; color: #fff; font-size: 0.8em; }
+        .xp-bar-bg { width: 100%; height: 10px; background: #333; border: 2px solid #fff; border-radius: 6px; overflow: hidden; margin-top: 5px;}
+        .xp-bar-fill { height: 100%; background: #00ff00; width: 0%; transition: width 0.3s; }
+
+        .screen-content { flex-grow: 1; overflow-y: auto; padding-right: 0; margin-bottom: 10px; scrollbar-width: none; -ms-overflow-style: none; }
+        .screen-content::-webkit-scrollbar { display: none; }
+        .page { display: none; width: 100%; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .section-title { font-family: 'Press Start 2P'; font-size: 0.7em; color: #444; margin-bottom: 10px; text-transform: uppercase; text-align: left; padding-left: 10px; }
+
+        /* LISTAS (MISSÕES) */
+        .gb-screen { background-color: #8bac0f; border: 4px solid #0f380f; border-radius: 5px; padding: 10px; font-family: 'Press Start 2P', cursive; color: #0f380f; box-shadow: inset 3px 3px 5px rgba(0,0,0,0.3); margin-bottom: 15px; }
+        .gb-header { border-bottom: 3px solid #0f380f; padding-bottom: 8px; margin-bottom: 10px; font-size: 0.7em; font-weight: bold; text-align: left; padding-left: 5px; }
+        .mission-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 2px dashed #0f380f; cursor: pointer; font-size: 0.6em; line-height: 1.5; user-select: none; }
+        .mission-row:hover { background-color: rgba(15, 56, 15, 0.2); }
+        .mission-row:active { background-color: rgba(15, 56, 15, 0.4); transform: scale(0.98); }
+        .arrow-cursor { margin-right: 5px; }
+        .panel-box { background: #eceff1; border: 4px solid #546e7a; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
+        .fail-btn { background: #cfd8dc; border: 2px solid #546e7a; border-radius: 8px; padding: 12px; cursor: pointer; font-family: 'Segoe UI', sans-serif; font-weight: bold; font-size: 0.9em; color: #444; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; box-shadow: 3px 3px 0px rgba(0,0,0,0.2); width: 100%; }
+        .fail-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+        .fail-left { display: flex; align-items: center; }
+        .fail-xp { color:#c0392b; font-weight:bold; white-space: nowrap; margin-left: 10px;}
+        
+        /* INSÍGNIAS */
+        .badges-box { background: #2d2d2d; border: 4px solid #000; border-radius: 10px; margin-bottom: 20px; box-shadow: inset 0 0 15px #000; overflow: hidden; display: flex; flex-direction: column; padding: 15px; }
+        .badges-title-text { font-family: 'Press Start 2P'; font-size: 0.7em; color: #3498db; margin-bottom: 10px; text-transform: uppercase; text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .badges-grid { display: flex; justify-content: space-between; align-items: center; }
+        .badge-slot { width: 50px; height: 50px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 2px solid #333; display: flex; align-items: center; justify-content: center; position: relative; }
+        .badge-slot.unlocked { background: radial-gradient(circle, #444, #222); border: 2px solid #ffd700; box-shadow: 0 0 10px #ffd700; }
+        .badge-img { width: 38px; height: 38px; object-fit: contain; filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 3px #fff); }
+        .badge-emoji { font-size: 2em; line-height: 1; filter: drop-shadow(0 0 2px #fff); }
+        .badge-locked { width: 30px; height: 30px; object-fit: contain; opacity: 0.2; filter: grayscale(100%); }
+        .badge-tooltip { visibility: hidden; background: #fff; color: #000; text-align: center; border-radius: 5px; padding: 5px; position: absolute; z-index: 100; bottom: 110%; left: 50%; transform: translateX(-50%); width: 120px; font-size: 10px; font-family: sans-serif; box-shadow: 0 5px 10px rgba(0,0,0,0.5); pointer-events: none; border: 2px solid #222; }
+        .badge-slot:hover .badge-tooltip { visibility: visible; }
+        
+        .shop-container { background: #fff9c4; border: 4px solid #fbc02d; border-radius: 10px; padding: 15px; }
+        .shop-item { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 5px; margin-bottom: 5px; }
+        .btn-buy { background: #4caf50; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-family: 'Press Start 2P'; font-size: 0.5em; }
+        .data-container { background: #e3f2fd; border: 4px solid #2196f3; border-radius: 10px; padding: 15px; }
+        .agenda-list { height: 180px; overflow-y: auto; background: #fff; border: 2px inset #ccc; padding: 10px; font-size: 0.8em; scrollbar-width: none; -ms-overflow-style: none; }
+        .agenda-list::-webkit-scrollbar { display: none; }
+        .chart-box { background: #fff; border: 1px solid #ccc; padding: 5px; height: 200px; margin-bottom: 15px; }
+        .nav-buttons { display: flex; justify-content: center; gap: 15px; margin-top: auto; padding-top: 10px; flex-shrink: 0; }
+        .nav-btn { background: #b71c1c; color: white; border: 2px solid #fff; padding: 12px 25px; font-family: 'Press Start 2P'; font-size: 0.6em; cursor: pointer; box-shadow: 3px 3px 0 #000; }
+        .nav-btn:hover { background: #d32f2f; }
+        .nav-btn.active { background: #ff5252; transform: scale(1.1); }
+
+        /* --- ADMIN PANEL --- */
+        .admin-container { width: 100%; max-width: 900px; background: #2c2c2c; color: white; border: 4px solid #000; border-radius: 15px; padding: 20px; margin-top: 20px; font-family: 'Press Start 2P', sans-serif; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 10; }
+        .admin-card { background: #3a3a3a; border: 1px solid #555; border-radius: 6px; padding: 15px; margin-bottom: 20px; }
+        .adm-title { font-size: 0.8em; margin-bottom: 10px; display:block; text-transform: uppercase; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1); }
+        .c-blue { color: #2196f3; } .c-green { color: #4caf50; } .c-red { color: #e74c3c; } .c-yellow { color: #f1c40f; } .c-purple { color: #9b59b6; }
+
+        .grid-team { display: grid; grid-template-columns: 15% 10% 37.5% 37.5%; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .grid-missions { display: grid; grid-template-columns: 2fr 50px 60px 60px 140px 110px 40px; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .grid-falhas { display: grid; grid-template-columns: 2fr 80px 60px 40px; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .grid-badges { display: grid; grid-template-columns: 110px 2fr 80px 1fr; gap: 10px; align-items: center; margin-bottom: 8px; }
+        .grid-shop { display: grid; grid-template-columns: 2fr 100px 40px; gap: 10px; align-items: center; margin-bottom: 8px; }
+
+        .admin-label { color: #888; font-family: 'Segoe UI', sans-serif; font-size: 0.6em; font-weight: bold; text-transform: uppercase; }
+        .admin-input { background: #222; color: white; border: 1px solid #444; padding: 8px; font-family: 'Segoe UI', sans-serif; font-size: 0.9em; height: 38px; border-radius: 4px; width: 100%; }
+        
+        .slot-label { font-family: 'Press Start 2P', cursive; font-size: 0.6em; color: #fff; text-transform: uppercase; text-shadow: 1px 1px 0 #000; white-space: nowrap; }
+        
+        .btn-full { width: 100%; padding: 12px; margin-top: 5px; cursor: pointer; border:none; color:white; font-family: 'Segoe UI', sans-serif; font-weight:bold; font-size: 0.9em; border-radius: 4px; text-transform: uppercase;}
+        .btn-mini { height: 38px; padding: 0; border: none; border-radius: 4px; cursor: pointer; background: #c0392b; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; width: 100%; }
+        .btn-search { height: 38px; padding: 0; cursor: pointer; background: #2980b9; color: white; border: none; border-radius: 4px; font-weight: bold; display:flex; align-items:center; justify-content:center; width: 100%; }
+
+        .list-icon-img { width: 20px; height: 20px; object-fit: contain; vertical-align: middle; margin-right: 5px; filter: drop-shadow(0 0 1px white); }
+        .list-icon-emoji { font-size: 1.2em; vertical-align: middle; margin-right: 5px; }
+        .item-tag { font-size: 0.6em; background: #222; color: #fff; padding: 2px 5px; border-radius: 4px; margin-right: 5px; display:inline-block; margin-top:3px;}
+
+        /* MODALS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: none; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: #fff; width: 90%; max-width: 400px; border: 4px solid #222; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 10px 10px 0 #000; font-family: 'Segoe UI', sans-serif; }
+        .modal-header { background: #dc0a2d; color: white; padding: 10px; font-family: 'Press Start 2P'; font-size: 0.7em; margin: -20px -20px 20px -20px; border-bottom: 4px solid #222; }
+        .modal-input { width: 100%; padding: 10px; margin: 15px 0; border: 2px solid #ccc; }
+        .modal-footer { display: flex; justify-content: center; gap: 10px; }
+        .btn-modal { padding: 10px 20px; border: 2px solid #000; cursor: pointer; font-family: 'Press Start 2P'; font-size: 0.6em; }
+        .btn-green { background: #4caf50; color: white; }
+        .btn-red { background: #f44336; color: white; }
+    </style>
+</head>
+<body>
+
+    <div id="modal-container" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header" id="modal-title">TITULO</div>
+            <div class="modal-body">
+                <p id="modal-msg" style="margin-bottom:15px; color:#333;">Mensagem...</p>
+                <div id="modal-extra-content"></div>
+            </div>
+            <div class="modal-footer" id="modal-actions"></div>
+        </div>
+    </div>
+
+    <div class="bg-fixed"></div>
+
+    <div class="pokedex-container" id="pokedex-box">
+        <div class="pokedex-head">
+            <div class="lens-blue"></div>
+            <div class="led-container"><div class="led led-red"></div><div class="led led-yellow"></div><div class="led led-green"></div></div>
+            <div class="speaker-grill"></div>
+        </div>
+
+        <div class="screen-area">
+            <div class="info-panel">
+                <div class="rpg-title">POKE <span style="color:#dc0a2d;">DAY</span></div>
+                <div class="party-bar" id="party-bar"></div>
+                <img id="ui-img" class="poke-sprite" src="">
+                <div class="stats-box">
+                    <div class="stat-row-top"><div style="flex-grow:1;"><span class="stat-name" id="ui-name">...</span><span class="stat-item">(<span id="ui-item">...</span>)</span></div><div><span class="stat-lvl">LVL: <span id="ui-lvl">1</span></span></div></div>
+                    <div class="xp-bar-bg"><div id="ui-xp-fill" class="xp-bar-fill"></div></div>
+                    <div class="stat-xp-txt">XP: <span id="ui-xp">0</span>/<span id="ui-next">100</span></div>
+                </div>
+            </div>
+
+            <div class="screen-content">
+                <div id="page-home" class="page active">
+                    <div class="gb-screen">
+                        <div class="gb-header">MISSÕES DISPONÍVEIS:</div>
+                        <div id="list-missions"></div>
+                    </div>
+                    <div class="panel-box">
+                        <div class="section-title">💀 FALHAS</div>
+                        <div id="list-defeats"></div>
+                    </div>
+                    <div class="badges-box">
+                        <div class="badges-title-text">INSÍGNIAS</div>
+                        <div class="badges-grid" id="list-badges"></div>
+                    </div>
+                </div>
+                <div id="page-shop" class="page">
+                    <div class="shop-container"><div class="section-title" style="display:flex; justify-content:space-between;"><span>🏪 POKÉMART</span><span style="color:#d32f2f;">Saldo: <span id="ui-gold">0</span> ₱</span></div><div id="list-shop"></div></div>
+                </div>
+                <div id="page-data" class="page">
+                    <div class="data-container"><div class="section-title">📈 EVOLUÇÃO (7 DIAS)</div><div class="chart-box"><canvas id="xpChart"></canvas></div><div class="section-title">📅 AGENDA</div><div id="list-agenda" class="agenda-list"></div></div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button id="btn-home" class="nav-btn active" onclick="window.changePage('home')">HOME</button>
+                <button id="btn-shop" class="nav-btn" onclick="window.changePage('shop')">LOJA</button>
+                <button id="btn-data" class="nav-btn" onclick="window.changePage('data')">DADOS</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <h3 style="margin-bottom:15px; cursor:pointer;" onclick="toggleAdmin()">▼ CONFIGURAÇÕES (ADMIN)</h3>
+        <div id="admin-panel" style="display:none;">
+            
+            <div class="admin-card">
+                <span class="adm-title c-purple">> GERENCIAMENTO DE SAVE (BACKUP)</span>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-full" style="background:#9b59b6; margin-top:0;" onclick="exportSave()">📥 EXPORTAR SAVE</button>
+                    <input type="file" id="import-file" style="display:none;" onchange="importSave(this)">
+                    <button class="btn-full" style="background:#8e44ad; margin-top:0;" onclick="document.getElementById('import-file').click()">📤 IMPORTAR SAVE</button>
+                </div>
+                <div style="margin-top:10px; font-size:0.7em; color:#aaa;">* Exporte o save para garantir que não perderá seus dados. Importe o arquivo JSON para restaurar.</div>
+            </div>
+
+            <div class="admin-card">
+                <span class="adm-title c-blue">> MEUS POKÉMONS (ÁREAS & ITENS)</span>
+                <div class="grid-team">
+                    <span class="admin-label">ID API</span><span class="admin-label"></span><span class="admin-label">APELIDO</span><span class="admin-label">ÁREA/ITEM</span>
+                </div>
+                <div id="admin-team"></div>
+            </div>
+            
+            <div class="admin-card">
+                <span class="adm-title c-green">> MISSÕES</span>
+                <div class="grid-missions">
+                    <span class="admin-label">NOME</span><span class="admin-label">ICON</span><span class="admin-label">XP</span><span class="admin-label">$</span><span class="admin-label">VÍNCULO</span><span class="admin-label">TIPO</span><span class="admin-label"></span>
+                </div>
+                <div id="admin-missions"></div>
+                <button class="btn-full" style="background:#4caf50;" onclick="addNew('missions')">+ Nova Missão</button>
+            </div>
+
+            <div class="admin-card">
+                <span class="adm-title c-red">> FALHAS</span>
+                <div class="grid-falhas">
+                    <span class="admin-label">NOME</span><span class="admin-label">DANO</span><span class="admin-label">ICON</span><span class="admin-label"></span>
+                </div>
+                <div id="admin-defeats"></div>
+                <button class="btn-full" style="background:#e74c3c;" onclick="addNew('defeats')">+ Nova Falha</button>
+            </div>
+
+            <div class="admin-card">
+                <span class="adm-title c-yellow">> CONQUISTAS (7 Slots)</span>
+                <div class="grid-badges">
+                    <span class="admin-label">DIA</span><span class="admin-label">NOME</span><span class="admin-label">META</span><span class="admin-label">IMG/EMOJI</span>
+                </div>
+                <div id="admin-badges"></div>
+            </div>
+
+            <div class="admin-card">
+                <span class="adm-title c-blue">> LOJA</span>
+                <div class="grid-shop">
+                    <span class="admin-label">ITEM</span><span class="admin-label">PREÇO</span><span class="admin-label"></span>
+                </div>
+                <div id="admin-shop"></div>
+                <button class="btn-full" style="background:#3498db;" onclick="addNew('shop')">+ Item Loja</button>
+            </div>
+
+            <hr style="margin:20px 0; border-color:#555;">
+            <button class="btn-full" style="background:#2196f3;" onclick="saveData()">SALVAR TUDO</button>
+            <button class="btn-full" style="background:#f44336;" onclick="resetData()">RESETAR FÁBRICA</button>
+        </div>
+    </div>
+
+    <script>
+        const pokemonDB = { 1: "Bulbasaur" }; 
+        const evolutionLines = {
+            1: [ { lvl: 1, name: "Bulbasaur", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/1.gif" } ],
+            4: [ { lvl: 1, name: "Charmander", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/4.gif" }, { lvl: 16, name: "Charmeleon", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/5.gif" }, { lvl: 36, name: "Charizard", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/6.gif" } ],
+            7: [ { lvl: 1, name: "Squirtle", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/7.gif" } ],
+            25: [ { lvl: 1, name: "Pichu", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/172.gif" } ],
+            133: [ { lvl: 1, name: "Eevee", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/133.gif" } ],
+            656: [ { lvl: 1, name: "Froakie", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/656.gif" } ],
+            390: [ { lvl: 1, name: "Chimchar", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/390.gif" } ],
+            447: [ { lvl: 1, name: "Riolu", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/447.gif" } ],
+            92: [ { lvl: 1, name: "Gastly", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/92.gif" } ],
+            207: [ { lvl: 1, name: "Gligar", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/207.gif" } ],
+            150: [ { lvl: 1, name: "Mewtwo", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/150.gif" } ],
+            149: [ { lvl: 1, name: "Dratini", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/147.gif" } ]
+        };
+
+        const defaultTeam = [ 
+            { id: 4, name: "Charmander", item: "Carreira e estudos", lvl: 1, xp: 0, max: 100 }, 
+            { id: 656, name: "Froakie", item: "Saúde física", lvl: 1, xp: 0, max: 100 }, 
+            { id: 390, name: "Chimchar", item: "Relacionamentos", lvl: 1, xp: 0, max: 100 }, 
+            { id: 447, name: "Riolu", item: "Propósito e espiritualidade", lvl: 1, xp: 0, max: 100 }, 
+            { id: 92, name: "Gastly", item: "Finanças", lvl: 1, xp: 0, max: 100 }, 
+            { id: 207, name: "Gligar", item: "Saúde mental e emocional", lvl: 1, xp: 0, max: 100 } 
+        ];
+
+        const defaultData = {
+            missions: [],
+            defeats: [],
+            badges: Array(7).fill({ name: "Bloqueado", img: "🔒", desc: "Meta a definir", unlocked: false }),
+            shop: []
+        };
+
+        let player = {
+            gold: 0, activeSlot: 0,
+            team: JSON.parse(JSON.stringify(defaultTeam)),
+            agenda: [], xpHistory: [], dailyMissions: {}, dailyStats: {}
+        };
+
+        let config = JSON.parse(JSON.stringify(defaultData));
+        let myChart = null;
+        let tempMissionIndex = null;
+
+        window.onload = function() { loadData(); checkDailyExpiry(); renderAll(); };
+
+        function loadData() {
+            try {
+                // v55: Mantendo a base da v54 e anteriores, mas usando chave v55 para seguranca
+                const lsC = localStorage.getItem('carlos_rpg_conf_v55');
+                const lsP = localStorage.getItem('carlos_rpg_play_v55');
+                
+                // Tenta migrar dados antigos se não houver novos
+                if (!lsC) {
+                    const oldC = localStorage.getItem('carlos_rpg_conf_v54');
+                    if (oldC) config = JSON.parse(oldC);
+                } else {
+                    config = JSON.parse(lsC);
+                }
+
+                if (!lsP) {
+                    const oldP = localStorage.getItem('carlos_rpg_play_v54');
+                    if (oldP) player = JSON.parse(oldP);
+                } else {
+                    player = JSON.parse(lsP);
+                }
+
+                if(!config.missions) config.missions = [];
+                if(!player.team || player.team.length === 0 || !player.team[0].item) {
+                     player.team = JSON.parse(JSON.stringify(defaultTeam));
+                }
+                if(!player.dailyStats) player.dailyStats = {};
+                config.missions.forEach(m => { if(!m.createdAt) m.createdAt = new Date().toISOString(); });
+                
+                player.team.forEach(p => {
+                    if(!evolutionLines[p.id]) {
+                         evolutionLines[p.id] = [ { lvl: 1, name: p.name, img: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${p.id}.gif` } ];
+                    }
+                });
+            } catch(e) { console.log("Reset or First Load"); }
+        }
+
+        window.saveData = function(silent = false) {
+            localStorage.setItem('carlos_rpg_conf_v55', JSON.stringify(config));
+            localStorage.setItem('carlos_rpg_play_v55', JSON.stringify(player));
+            renderAll();
+            if(!silent) showModal("SISTEMA", "Dados Salvos!", "", [{text:"OK", class:"btn-green", action:"closeModal"}]);
+        }
+
+        // --- FUNÇÕES DE IMPORTAR E EXPORTAR SAVE ---
+        window.exportSave = function() {
+            const dataToExport = {
+                config: config,
+                player: player,
+                version: "v55"
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "save_rpg.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        window.importSave = function(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (importedData.config && importedData.player) {
+                        if(confirm("Isso irá substituir todos os dados atuais. Tem certeza?")) {
+                            config = importedData.config;
+                            player = importedData.player;
+                            saveData(true); // Salva sem mostrar modal
+                            alert("Save importado com sucesso!");
+                            location.reload(); // Recarrega para aplicar tudo limpo
+                        }
+                    } else {
+                        alert("Arquivo de save inválido.");
+                    }
+                } catch(error) {
+                    alert("Erro ao ler o arquivo.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function checkDailyExpiry() {
+            let now = new Date();
+            let missionsToRemove = [];
+            config.missions.forEach((m, index) => {
+                if (m.type === 'daily' && m.createdAt) {
+                    let created = new Date(m.createdAt);
+                    let expireDate = new Date(created);
+                    expireDate.setDate(expireDate.getDate() + 1);
+                    expireDate.setHours(5, 0, 0, 0);
+                    if (now >= expireDate) {
+                        missionsToRemove.push(index);
+                        player.agenda.push({ date: new Date().toLocaleDateString('pt-BR'), text: `Expirou: ${m.name}`, note: "Não completada a tempo." });
+                    }
+                }
+            });
+            for (let i = missionsToRemove.length - 1; i >= 0; i--) {
+                config.missions.splice(missionsToRemove[i], 1);
+            }
+            if(missionsToRemove.length > 0) saveData(true);
+        }
+
+        window.fetchPokemon = function(index) {
+            let idInput = document.getElementById(`poke-id-${index}`);
+            let id = idInput.value;
+            if(!id) return;
+            let btn = document.getElementById(`btn-search-${index}`);
+            let originalText = btn.innerText;
+            btn.innerText = "⌛";
+
+            fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
+            .then(res => { if(!res.ok) throw new Error('Erro'); return res.json(); })
+            .then(data => {
+                let name = data.name.charAt(0).toUpperCase() + data.name.slice(1);
+                let sprite = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${data.id}.gif`;
+                player.team[index].id = data.id;
+                player.team[index].name = name;
+                evolutionLines[data.id] = [{ lvl: 1, name: name, img: sprite }];
+                saveData(true);
+                btn.innerText = "✅";
+                setTimeout(() => btn.innerText = originalText, 1000);
+            })
+            .catch(err => { alert("Pokémon não encontrado!"); btn.innerText = "❌"; setTimeout(() => btn.innerText = originalText, 1000); });
+        }
+
+        function renderAll() {
+            updateStats();
+            renderPartyBar();
+            
+            const listM = document.getElementById('list-missions'); 
+            listM.innerHTML = '';
+            if (config.missions.length === 0) {
+                listM.innerHTML = '<div style="text-align:center; padding:10px;">Sem missões.</div>';
+            } else {
+                config.missions.forEach((m, i) => {
+                    let icon = getIconHtml(m.icon);
+                    let linkTag = m.linkedItem ? `<span class="item-tag">${m.linkedItem}</span>` : '';
+                    let typeIcon = m.type === 'story' ? '📖' : '📅';
+                    listM.innerHTML += `<div class="mission-row" onclick="window.clickMission(${i})"><div style="display:flex; align-items:center;"><span class="arrow-cursor">►</span> ${icon}<div style="margin-left:5px; display:flex; flex-direction:column; align-items:flex-start;"><span>${m.name}</span><div style="display:flex; gap:5px;">${linkTag} <span style="font-size:0.7em">${typeIcon}</span></div></div></div><span>+${m.xp}XP</span></div>`;
+                });
+            }
+
+            const listD = document.getElementById('list-defeats'); listD.innerHTML = '';
+            if (config.defeats.length === 0) {
+                 listD.innerHTML = '<div style="text-align:center; padding:10px;">Sem falhas registradas.</div>';
+            } else {
+                config.defeats.forEach((d, i) => {
+                    let icon = getIconHtml(d.icon);
+                    listD.innerHTML += `<div class="fail-btn" onclick="window.clickDefeat(${i})"><div class="fail-left">${icon} <span style="margin-left:5px;">${d.name}</span></div><span class="fail-xp">${d.xp} XP</span></div>`;
+                });
+            }
+
+            const listB = document.getElementById('list-badges'); listB.innerHTML = '';
+            config.badges.forEach((b, i) => {
+                let lockedUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png";
+                let unlockedClass = b.unlocked ? 'unlocked' : '';
+                let content = "";
+                if(b.unlocked) {
+                    if(b.img.match(/^http/i)) {
+                         content = `<img src="${b.img}" class="badge-img">`;
+                    } else {
+                         content = `<span class="badge-emoji">${b.img}</span>`;
+                    }
+                } else {
+                    content = `<img src="${lockedUrl}" class="badge-locked">`;
+                }
+
+                let todayIdx = new Date().getDay();
+                let progress = i === todayIdx ? `<br>(${player.dailyMissions[new Date().toLocaleDateString('pt-BR')]||0}/${b.goal})` : "";
+                listB.innerHTML += `<div class="badge-slot ${unlockedClass}">${content}<div class="badge-tooltip"><b>${b.name}</b><br>${b.desc}${progress}</div></div>`;
+            });
+
+            const listS = document.getElementById('list-shop'); listS.innerHTML = '';
+            if (config.shop.length === 0) {
+                 listS.innerHTML = '<div style="text-align:center; padding:10px;">Loja vazia.</div>';
+            } else {
+                config.shop.forEach((s, i) => {
+                    let canBuy = player.gold >= s.cost;
+                    listS.innerHTML += `<div class="shop-item"><span style="font-weight:bold; color:#333;">${s.name}</span><span style="font-family:monospace; font-weight:bold; color:#d32f2f;">${s.cost} ₱</span><button class="btn-buy" ${!canBuy?'disabled style="background:#ccc"':''} onclick="buyItem(${i})">COMPRAR</button></div>`;
+                });
+            }
+
+            const listA = document.getElementById('list-agenda'); listA.innerHTML = '';
+            player.agenda.slice().reverse().forEach(a => {
+                listA.innerHTML += `<div style="border-bottom:1px solid #ccc; padding:5px; margin-bottom:5px;"><b style="color:#dc0a2d;">${a.date}</b> - ${a.text} <br><i style="color:#666;">${a.note||''}</i></div>`;
+            });
+
+            renderAdmin();
+        }
+
+        window.clickMission = function(index) {
+            tempMissionIndex = index;
+            let m = config.missions[index];
+            let itemText = m.linkedItem ? `<br><small style="color:#555;">(Vai para: ${m.linkedItem})</small>` : '';
+            let html = `<p style="margin-bottom:10px;">Concluir: <b>${m.name}</b>${itemText}</p><p style="font-size:0.8em; color:#666;">Recompensa: +${m.xp}XP | +${m.coins}₱</p><input type="text" id="modal-note" class="modal-input" placeholder="Comentário opcional..."><button class="btn-modal btn-green" onclick="window.confirmMission(${index})">CONFIRMAR</button>`;
+            showModal("VITÓRIA!", null, html, []);
+        }
+
+        window.confirmMission = function(index) {
+            if(tempMissionIndex === null && index === undefined) return;
+            if(index === undefined) index = tempMissionIndex;
+            
+            let m = config.missions[index];
+            let targetPoke = null;
+            if(m.linkedItem && m.linkedItem !== "") { targetPoke = player.team.find(p => p.item === m.linkedItem); }
+            if (!targetPoke) targetPoke = player.team[player.activeSlot];
+            
+            let note = document.getElementById('modal-note').value;
+            let dateKey = new Date().toLocaleDateString('pt-BR');
+
+            targetPoke.xp += parseInt(m.xp);
+            player.gold += parseInt(m.coins);
+
+            if(!player.dailyStats[dateKey]) player.dailyStats[dateKey] = { gained: 0, lost: 0 };
+            player.dailyStats[dateKey].gained += parseInt(m.xp);
+            
+            player.agenda.push({ date: dateKey, text: `Concluído: ${m.name} (${targetPoke.name})`, note: note });
+            
+            if(m.type === 'daily') config.missions.splice(index, 1);
+
+            if(!player.dailyMissions[dateKey]) player.dailyMissions[dateKey] = 0;
+            player.dailyMissions[dateKey]++;
+            let dayIndex = new Date().getDay();
+            let badge = config.badges[dayIndex];
+            if(badge.goal && player.dailyMissions[dateKey] >= badge.goal && !badge.unlocked) {
+                badge.unlocked = true;
+                setTimeout(() => { showModal("CONQUISTA!", `Insígnia de ${badge.name} desbloqueada!`, "", [{text:"UHU!", class:"btn-green", action:"closeModal"}]); }, 600);
+            }
+
+            const container = document.getElementById('pokedex-box');
+            container.classList.remove('success-effect');
+            void container.offsetWidth; 
+            container.classList.add('success-effect');
+            setTimeout(() => container.classList.remove('success-effect'), 500);
+
+            let leveledUp = checkLevel(targetPoke);
+            saveData(true); 
+            updateStats(); 
+            if(!leveledUp) closeModal();
+            tempMissionIndex = null;
+        }
+
+        window.clickDefeat = function(index) {
+            let d = config.defeats[index];
+            let dateKey = new Date().toLocaleDateString('pt-BR');
+            const container = document.getElementById('pokedex-box');
+            container.classList.remove('shake-effect');
+            void container.offsetWidth;
+            container.classList.add('shake-effect');
+            setTimeout(() => container.classList.remove('shake-effect'), 500);
+
+            if(!player.dailyStats[dateKey]) player.dailyStats[dateKey] = { gained: 0, lost: 0 };
+            player.dailyStats[dateKey].lost += Math.abs(parseInt(d.xp));
+
+            player.team.forEach(p => {
+                p.xp += parseInt(d.xp);
+                if(p.xp < 0) p.xp = 0;
+            });
+            player.agenda.push({ date: dateKey, text: `Falha: ${d.name}`, note: `XP Perdido: ${d.xp} (Todos)` });
+            saveData(true);
+            updateStats();
+        }
+
+        window.buyItem = function(index) {
+            let s = config.shop[index];
+            if(player.gold >= s.cost) {
+                player.gold -= parseInt(s.cost);
+                let dateKey = new Date().toLocaleDateString('pt-BR');
+                player.agenda.push({ date: dateKey, text: `Compra: ${s.name}`, note: `-${s.cost} ₱` });
+                showModal("LOJA", `Você comprou ${s.name}!`, "", [{text:"OK", class:"btn-green", action:"closeModal"}]);
+                saveData(true);
+            }
+        }
+
+        function checkLevel(poke) {
+            let oldLvl = poke.lvl;
+            let leveled = false;
+            while (poke.xp >= poke.max) {
+                poke.lvl++;
+                poke.xp -= poke.max;
+                poke.max = Math.floor(poke.max * 1.5);
+                leveled = true;
+            }
+            if (leveled) {
+                let dateKey = new Date().toLocaleDateString('pt-BR');
+                player.agenda.push({ date: dateKey, text: `LEVEL UP! ${poke.name}`, note: `Alcançou nível ${poke.lvl}` });
+                
+                let evoData = evolutionLines[poke.id];
+                if (evoData) {
+                    if (oldLvl < evoData[1].lvl && poke.lvl >= evoData[1].lvl) {
+                         showModal("EVOLUÇÃO!", `${poke.name} está evoluindo!`, "", [{text:"UAU!", class:"btn-green", action:"closeModal"}]);
+                    } else {
+                         showModal("LEVEL UP!", `${poke.name} subiu para o Nível ${poke.lvl}!`, "", [{text:"OK", class:"btn-green", action:"closeModal"}]);
+                    }
+                }
+            }
+            return leveled;
+        }
+
+        function getIconHtml(txt) { if(!txt) return ''; if(txt.match(/^http/i)) return `<img src="${txt}" class="list-icon-img">`; return `<span class="list-icon-emoji">${txt}</span>`; }
+        function updateStats() {
+            let activePoke = player.team[player.activeSlot];
+            let evoData = evolutionLines[activePoke.id] || [{lvl:1, name: activePoke.name, img:`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${activePoke.id}.gif`}]; 
+            let currentForm = evoData[0];
+            if(evoData[1] && activePoke.lvl >= evoData[1].lvl) currentForm = evoData[1];
+            if(evoData[2] && activePoke.lvl >= evoData[2].lvl) currentForm = evoData[2];
+
+            document.getElementById('ui-img').src = currentForm.img;
+            document.getElementById('ui-name').innerText = currentForm.name; 
+            
+            let itemDisplay = activePoke.item ? activePoke.item : "...";
+            document.getElementById('ui-item').innerText = itemDisplay;
+            
+            document.getElementById('ui-lvl').innerText = activePoke.lvl;
+            document.getElementById('ui-xp').innerText = activePoke.xp;
+            document.getElementById('ui-next').innerText = activePoke.max;
+            let pct = Math.min((activePoke.xp / activePoke.max) * 100, 100);
+            document.getElementById('ui-xp-fill').style.width = pct + '%';
+        }
+
+        function renderPartyBar() {
+            const bar = document.getElementById('party-bar'); bar.innerHTML = '';
+            player.team.forEach((p, i) => {
+                let evoData = evolutionLines[p.id] || [{lvl:1, name: p.name, img:`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${p.id}.gif`}];
+                let currentForm = evoData[0];
+                if(evoData[1] && p.lvl >= evoData[1].lvl) currentForm = evoData[1];
+                if(evoData[2] && p.lvl >= evoData[2].lvl) currentForm = evoData[2];
+
+                let activeClass = i === player.activeSlot ? 'active' : '';
+                bar.innerHTML += `<div class="party-ball ${activeClass}" onclick="window.switchPoke(${i})" title="${p.name} - ${p.item}"><img src="${currentForm.img}"></div>`;
+            });
+        }
+
+        function renderAdmin() {
+            const tm = document.getElementById('admin-team'); tm.innerHTML = '';
+            
+            player.team.forEach((p, i) => {
+                tm.innerHTML += `
+                <div class="grid-team">
+                    <input type="number" class="admin-input" id="poke-id-${i}" value="${p.id}">
+                    <button id="btn-search-${i}" class="btn-search" onclick="fetchPokemon(${i})">🔍</button>
+                    <input value="${p.name}" oninput="player.team[${i}].name=this.value" class="admin-input">
+                    <input value="${p.item}" oninput="player.team[${i}].item=this.value" class="admin-input">
+                </div>`;
+            });
+
+            const ms = document.getElementById('admin-missions'); ms.innerHTML = '';
+            config.missions.forEach((m, i) => {
+                let options = `<option value="">-- Item --</option>`;
+                player.team.forEach(t => {
+                    let sel = t.item === m.linkedItem ? 'selected' : '';
+                    options += `<option value="${t.item}" ${sel}>${t.item}</option>`;
+                });
+                
+                let typeSel = `
+                    <select onchange="config.missions[${i}].type=this.value" class="admin-input">
+                        <option value="daily" ${m.type==='daily'?'selected':''}>Diária</option>
+                        <option value="story" ${m.type==='story'?'selected':''}>História</option>
+                    </select>
+                `;
+
+                ms.innerHTML += `
+                <div class="grid-missions">
+                    <input value="${m.name}" oninput="config.missions[${i}].name=this.value" class="admin-input">
+                    <input value="${m.icon}" oninput="config.missions[${i}].icon=this.value" class="admin-input">
+                    <input type="number" value="${m.xp}" oninput="config.missions[${i}].xp=this.value" class="admin-input">
+                    <input type="number" value="${m.coins}" oninput="config.missions[${i}].coins=this.value" class="admin-input">
+                    <select onchange="config.missions[${i}].linkedItem=this.value" class="admin-input">${options}</select>
+                    ${typeSel}
+                    <button class="btn-mini" onclick="removeItem('missions', ${i})">X</button>
+                </div>`;
+            });
+
+            const ld = document.getElementById('admin-defeats'); ld.innerHTML = '';
+            config.defeats.forEach((d, i) => { 
+                ld.innerHTML += `
+                <div class="grid-falhas">
+                    <input value="${d.name}" oninput="config.defeats[${i}].name=this.value" class="admin-input">
+                    <input type="number" value="${d.xp}" oninput="config.defeats[${i}].xp=this.value" class="admin-input">
+                    <input value="${d.icon}" oninput="config.defeats[${i}].icon=this.value" class="admin-input">
+                    <button class="btn-mini" onclick="removeItem('defeats', ${i})">X</button>
+                </div>`; 
+            });
+
+            // CORREÇÃO DOS NOMES DOS DIAS
+            const lb = document.getElementById('admin-badges'); lb.innerHTML = '';
+            const dayNames = ["DOMINGO", "SEGUNDA", "TERÇA", "QUARTA", "QUINTA", "SEXTA", "SÁBADO"];
+            
+            config.badges.forEach((b, i) => { 
+                lb.innerHTML += `
+                <div class="grid-badges">
+                    <span class="slot-label">${dayNames[i]}</span>
+                    <input value="${b.name}" oninput="config.badges[${i}].name=this.value" class="admin-input">
+                    <input type="number" value="${b.goal}" oninput="config.badges[${i}].goal=this.value" class="admin-input">
+                    <input value="${b.img}" oninput="config.badges[${i}].img=this.value" class="admin-input">
+                </div>`; 
+            });
+
+            const sh = document.getElementById('admin-shop'); sh.innerHTML = '';
+            config.shop.forEach((s, i) => { 
+                sh.innerHTML += `
+                <div class="grid-shop">
+                    <input value="${s.name}" oninput="config.shop[${i}].name=this.value" class="admin-input">
+                    <input type="number" value="${s.cost}" oninput="config.shop[${i}].cost=this.value" class="admin-input">
+                    <button class="btn-mini" onclick="removeItem('shop', ${i})">X</button>
+                </div>`; 
+            });
+        }
+
+        window.switchPoke = function(index) { player.activeSlot = index; renderAll(); }
+        window.addNew = function(type) {
+            if(type==='missions') config.missions.push({name:'Nova', xp:10, coins:5, icon:'📝', linkedItem:'', type:'daily', createdAt: new Date().toISOString()});
+            if(type==='defeats') config.defeats.push({name:'Falha', xp:-20, icon:'💀'});
+            if(type==='shop') config.shop.push({name:'Item', cost:100});
+            renderAll();
+        }
+        window.removeItem = function(type, index) { config[type].splice(index, 1); renderAll(); }
+        window.resetData = function() { if(confirm("Apagar tudo?")) { localStorage.clear(); location.reload(); } }
+        window.toggleAdmin = function() { const p = document.getElementById('admin-panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
+        window.changePage = function(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('page-'+page).classList.add('active');
+            document.getElementById('btn-'+page).classList.add('active');
+            if(page === 'data') setTimeout(renderChart, 100);
+        }
+        function renderChart() {
+            const ctx = document.getElementById('xpChart');
+            if(!ctx) return;
+            if(myChart) myChart.destroy();
+            const labels = [];
+            const dataGained = [];
+            const dataLost = [];
+            for(let i=6; i>=0; i--) {
+                let d = new Date();
+                d.setDate(d.getDate() - i);
+                let key = d.toLocaleDateString('pt-BR');
+                labels.push(key.slice(0,5)); 
+                let dayData = player.dailyStats[key] || { gained: 0, lost: 0 };
+                dataGained.push(dayData.gained);
+                dataLost.push(dayData.lost);
+            }
+            myChart = new Chart(ctx, { 
+                type: 'line', 
+                data: { 
+                    labels: labels, 
+                    datasets: [
+                        { label: 'Ganhos', data: dataGained, borderColor: '#2196f3', backgroundColor: 'rgba(33, 150, 243, 0.2)', fill: true },
+                        { label: 'Perdas', data: dataLost, borderColor: '#f44336', backgroundColor: 'rgba(244, 67, 54, 0.2)', fill: true }
+                    ] 
+                }, 
+                options: { responsive: true, maintainAspectRatio: false } 
+            });
+        }
+        window.showModal = function(title, msg, html, buttons) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-msg').innerText = msg || '';
+            document.getElementById('modal-extra-content').innerHTML = html || '';
+            const footer = document.getElementById('modal-actions'); footer.innerHTML = '';
+            buttons.forEach(b => {
+                let btn = document.createElement('button');
+                btn.className = `btn-modal ${b.class}`;
+                btn.innerText = b.text;
+                btn.onclick = window[b.action];
+                if(b.action === "confirmMission") { /* Handled in onclick gen above */ }
+                footer.appendChild(btn);
+            });
+            document.getElementById('modal-container').classList.add('active');
+            document.getElementById('modal-container').style.display = 'flex';
+        }
+        window.closeModal = function() { document.getElementById('modal-container').classList.remove('active'); document.getElementById('modal-container').style.display = 'none'; }
+    </script>
+</body>
+</html>

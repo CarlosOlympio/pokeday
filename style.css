@@ -1,0 +1,210 @@
+/* ================= RESET E ESTRUTURA ================= */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Ocultar barra de rolagem (Cross-browser) */
+::-webkit-scrollbar { display: none; }
+html { -ms-overflow-style: none; scrollbar-width: none; }
+
+body { 
+    background-color: #2c3e50; 
+    font-family: 'Segoe UI', sans-serif; 
+    padding: 20px; 
+    display: flex; flex-direction: column; align-items: center; 
+    min-height: 100vh;
+    background-image: radial-gradient(#3a536b 15%, transparent 16%), radial-gradient(#3a536b 15%, transparent 16%);
+    background-size: 20px 20px;
+}
+
+/* ================= POKÉDEX CONTAINER ================= */
+.pokedex-container {
+    width: 100%; max-width: 900px;
+    height: 900px;
+    background: #dc0a2d; /* Vermelho Oficial */
+    border: 6px solid #000;
+    border-radius: 30px; 
+    padding: 25px 25px 15px 25px;
+    box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+    position: relative; margin-bottom: 40px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    transition: background-color 0.2s;
+}
+
+/* ================= EFEITOS VISUAIS ================= */
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+.shake-effect { 
+    animation: shake 0.5s; 
+    background-color: #ff5252 !important; /* Vermelho Erro */
+}
+
+@keyframes flash-green {
+    0% { background-color: #dc0a2d; }
+    50% { background-color: #66bb6a; } /* Verde Sucesso */
+    100% { background-color: #dc0a2d; }
+}
+.success-effect {
+    animation: flash-green 0.6s ease-out;
+}
+
+/* ================= LUZES (TOPO) ================= */
+.decor-lights { position: absolute; top: 15px; left: 25px; display: flex; gap: 8px; align-items: center; z-index: 10; }
+.light-big { 
+    width: 50px; height: 50px; 
+    border-radius: 50%; border: 4px solid #fff; 
+    background: radial-gradient(circle at 30% 30%, #4dd0e1, #00bfff, #01579b); 
+    box-shadow: 0 0 10px #00bfff; 
+}
+.light-small { width: 15px; height: 15px; border-radius: 50%; border: 2px solid #000; }
+.red { background: #f00; } .yellow { background: #ff0; } .green { background: #0f0; }
+
+/* ================= HEADER ================= */
+.header-section {
+    background: #dedede; border: 4px solid #000; border-radius: 10px 10px 40px 10px;
+    padding: 15px; margin-top: 45px; margin-bottom: 10px; text-align: center;
+    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2); flex-shrink: 0;
+}
+
+.party-bar {
+    display: flex; justify-content: space-evenly; align-items: center;
+    margin-bottom: 5px; background: #222; padding: 8px; 
+    border-radius: 30px; border: 3px solid #000; width: 100%;
+}
+.party-ball {
+    width: 40px; height: 40px; border-radius: 50%; border: 2px solid #555;
+    background: #444; cursor: pointer; transition: 0.2s; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+}
+.party-ball:hover { transform: scale(1.1); border-color: #fff; }
+.party-ball.active { background: #f00; border-color: #ffd700; box-shadow: 0 0 10px #f00, inset 2px 2px 5px rgba(0,0,0,0.5); }
+.party-ball img { width: 28px; height: 28px; image-rendering: pixelated; }
+
+.poke-sprite { width: 90px; height: 90px; object-fit: contain; image-rendering: pixelated; margin: 5px auto; animation: float 3s infinite ease-in-out; }
+@keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
+
+.stats-box { background: #222; color: #0f0; padding: 10px; border-radius: 5px; font-family: 'Press Start 2P'; font-size: 0.6em; text-align: left; }
+.stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.xp-bar-bg { width: 100%; height: 12px; background: #555; border: 1px solid #fff; border-radius: 6px; overflow: hidden; }
+.xp-bar-fill { height: 100%; background: #00ff00; width: 0%; transition: width 0.3s; }
+
+/* ================= ÁREA DE CONTEÚDO ================= */
+.screen-content { flex-grow: 1; overflow-y: auto; padding-right: 0; margin-bottom: 10px; }
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.section-title { font-family: 'Press Start 2P'; font-size: 0.7em; color: #444; margin-bottom: 10px; text-transform: uppercase; }
+
+/* --- MISSÕES (GAMEBOY STYLE) --- */
+.gb-screen {
+    background-color: #8bac0f; border: 4px solid #0f380f; border-radius: 5px;
+    padding: 10px; font-family: 'Press Start 2P', cursive; color: #0f380f;
+    box-shadow: inset 3px 3px 5px rgba(0,0,0,0.3); margin-bottom: 15px;
+}
+.gb-header { border-bottom: 3px solid #0f380f; padding-bottom: 8px; margin-bottom: 10px; font-size: 0.7em; font-weight: bold; }
+
+.mission-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 5px; border-bottom: 2px dashed #0f380f; 
+    cursor: pointer; font-size: 0.6em; line-height: 1.5; transition: all 0.1s;
+    user-select: none;
+}
+.mission-row:hover { background-color: rgba(15, 56, 15, 0.2); }
+.mission-row:active { background-color: rgba(15, 56, 15, 0.4); transform: scale(0.98); } 
+.arrow-cursor { margin-right: 5px; }
+
+/* --- FALHAS (CARD STYLE) --- */
+.panel-box { background: #eceff1; border: 4px solid #546e7a; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
+.fail-btn {
+    background: #cfd8dc; border: 2px solid #546e7a; border-radius: 8px; padding: 12px; cursor: pointer;
+    font-family: 'Segoe UI', sans-serif; font-weight: bold; font-size: 0.9em; color: #444;
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 8px; box-shadow: 3px 3px 0px rgba(0,0,0,0.2); width: 100%;
+}
+.fail-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+.fail-left { display: flex; align-items: center; }
+.fail-xp { color:#c0392b; font-weight:bold; white-space: nowrap; margin-left: 10px;}
+
+/* --- CONQUISTAS --- */
+.badges-container { 
+    background: #2d2d2d;
+    border: 4px solid #000; border-radius: 10px; padding: 15px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: inset 0 0 15px #000;
+}
+.badge-slot { 
+    width: 45px; height: 45px; 
+    background: rgba(255,255,255,0.05); border-radius: 50%; border: 1px solid #444;
+    display: flex; align-items: center; justify-content: center; position: relative;
+}
+.badge-slot.unlocked { 
+    background: radial-gradient(circle, #444, #222); 
+    border: 2px solid #ffd700; 
+    box-shadow: 0 0 10px #ffd700; 
+}
+.badge-img { width: 30px; height: 30px; object-fit: contain; opacity: 0.1; filter: grayscale(100%); }
+.badge-slot.unlocked .badge-img { opacity: 1; filter: none; }
+.badge-tooltip {
+    visibility: hidden; background: #fff; color: #000; text-align: center; border-radius: 5px;
+    padding: 5px; position: absolute; z-index: 100; bottom: 110%; left: 50%; transform: translateX(-50%);
+    width: 120px; font-size: 10px; font-family: sans-serif; box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+    pointer-events: none; border: 2px solid #222;
+}
+.badge-slot:hover .badge-tooltip { visibility: visible; }
+
+/* --- LOJA --- */
+.shop-container { background: #fff9c4; border: 4px solid #fbc02d; border-radius: 10px; padding: 15px; }
+.shop-item {
+    display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center;
+    background: #fff; border: 1px solid #ccc; padding: 10px; border-radius: 5px; margin-bottom: 5px;
+}
+.btn-buy { background: #4caf50; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-family: 'Press Start 2P'; font-size: 0.5em; }
+
+/* --- DADOS --- */
+.data-container { background: #e3f2fd; border: 4px solid #2196f3; border-radius: 10px; padding: 15px; }
+.agenda-list { height: 180px; overflow-y: auto; background: #fff; border: 2px inset #ccc; padding: 10px; font-size: 0.8em; }
+.chart-box { background: #fff; border: 1px solid #ccc; padding: 5px; height: 200px; margin-bottom: 15px; }
+
+/* --- FOOTER NAV --- */
+.nav-buttons { display: flex; justify-content: center; gap: 15px; margin-top: auto; padding-top: 10px; flex-shrink: 0; }
+.nav-btn {
+    background: #b71c1c; color: white; border: 2px solid #fff; 
+    padding: 12px 25px; font-family: 'Press Start 2P'; font-size: 0.6em; cursor: pointer;
+    box-shadow: 3px 3px 0 #000;
+}
+.nav-btn:hover { background: #d32f2f; }
+.nav-btn.active { background: #ff5252; transform: scale(1.1); }
+
+/* --- MODALS --- */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; display: none; justify-content: center; align-items: center; }
+.modal-overlay.active { display: flex; }
+.modal-box { background: #fff; width: 90%; max-width: 400px; border: 4px solid #222; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 10px 10px 0 #000; font-family: 'Segoe UI', sans-serif; }
+.modal-header { background: #dc0a2d; color: white; padding: 10px; font-family: 'Press Start 2P'; font-size: 0.7em; margin: -20px -20px 20px -20px; border-bottom: 4px solid #222; }
+.modal-input { width: 100%; padding: 10px; margin: 15px 0; border: 2px solid #ccc; }
+.modal-footer { display: flex; justify-content: center; gap: 10px; }
+.btn-modal { padding: 10px 20px; border: 2px solid #000; cursor: pointer; font-family: 'Press Start 2P'; font-size: 0.6em; }
+.btn-green { background: #4caf50; color: white; }
+.btn-red { background: #f44336; color: white; }
+
+/* --- ADMIN --- */
+.admin-container { width: 100%; max-width: 800px; background: #333; color: white; border: 4px solid #555; border-radius: 10px; padding: 20px; margin-top: 20px; }
+.admin-row { display: flex; gap: 5px; margin-bottom: 5px; background: #444; padding: 5px; }
+.admin-row input { padding: 8px; background: #222; color: white; border: 1px solid #666; width: 100%; }
+.admin-row select { padding: 8px; background: #222; color: white; border: 1px solid #666; width: 100%; }
+.btn-full { width: 100%; padding: 10px; margin-top: 5px; cursor: pointer; font-weight: bold; border: none; }
+.btn-mini { padding: 5px; cursor:pointer; background: red; color:white; border:none;}
+
+.list-icon-img { width: 20px; height: 20px; object-fit: contain; vertical-align: middle; margin-right: 5px; }
+.list-icon-emoji { font-size: 1.2em; vertical-align: middle; margin-right: 5px; }
+
+/* Tag de item na missão */
+.item-tag { font-size: 0.7em; background: #222; color: #fff; padding: 2px 5px; border-radius: 4px; margin-right: 5px; display:inline-block; margin-top:3px;}
