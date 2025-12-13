@@ -165,26 +165,33 @@ body {
 
 /* --- RESPONSIVIDADE EXTREMA (Celular) --- */
 @media (max-width: 600px) {
-    body { padding: 0; overflow: hidden; } /* Remove padding do corpo */
+    body { 
+        padding: 0; 
+        overflow-x: hidden;
+        overflow-y: auto; /* Permite rolar a página toda */
+    } 
     
     .bg-fixed { filter: blur(2px); }
 
+    /* POKÉDEX: Ocupa quase toda a tela, mas deixa espaço p/ rolar */
     .pokedex-container {
         width: 100%; 
-        height: 100dvh; /* Altura total da viewport dinâmica */
+        min-height: 100dvh; /* Garante altura mínima */
+        height: auto;       /* Deixa crescer se precisar */
         max-height: none;
         border: none; border-radius: 0;
         margin: 0;
+        margin-bottom: 20px; /* Espaço antes do admin */
     }
 
     .pokedex-head {
-        height: 100px; /* Cabeçalho mais curto */
+        height: 100px; 
         border-bottom-width: 4px;
     }
     
     .lens-blue { width: 60px; height: 60px; top: 20px; left: 20px; border-width: 4px; }
     .led-container { top: 25px; left: 100px; }
-    .speaker-grill { display: none; } /* Remove detalhes desnecessários */
+    .speaker-grill { display: none; } 
 
     .screen-area { padding: 10px; }
     
@@ -207,17 +214,23 @@ body {
     }
     .party-ball { width: 30px; height: 30px; }
     
-    #ui-img { grid-column: 1; grid-row: 2; width: 70px; height: 70px; margin-left: 35px; } /* Sobrepõe levemente */
+    #ui-img { grid-column: 1; grid-row: 2; width: 70px; height: 70px; margin-left: 35px; } 
     
     .stats-box { grid-column: 2; grid-row: 2; margin-top: 0; font-size: 0.5em; }
 
     .nav-btn { padding: 12px 0; font-size: 0.5em; }
     
-    /* Admin no Mobile */
+    /* CORREÇÃO DO ADMIN: Fica no fundo da página, não na frente */
     .admin-container {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        overflow-y: auto; z-index: 9999; margin: 0; border-radius: 0; border: none;
-        padding-top: 60px; /* Espaço para botão fechar se houver */
+        position: relative; /* Volta ao fluxo normal */
+        width: 100%; 
+        height: auto; 
+        z-index: 1; 
+        margin: 0; 
+        border-radius: 0; 
+        border: none;
+        border-top: 4px solid #000;
+        padding-bottom: 40px;
     }
 }
 
