@@ -55,20 +55,6 @@ body {
     z-index: 10;
 }
 
-/* RESPONSIVIDADE (Mobile) */
-@media (max-width: 600px) {
-    body { padding: 0; }
-    .pokedex-container {
-        width: 100%; height: 100vh;
-        border-radius: 0; border: none;
-        margin-bottom: 0;
-    }
-    .pokedex-head { height: 140px; }
-    .lens-blue { width: 70px; height: 70px; top: 20px; left: 20px; }
-    .led-container { left: 110px; top: 30px; }
-    .speaker-grill { display: none; }
-}
-
 /* ANIMAÇÕES */
 .shake-effect { animation: shake 0.4s ease-in-out; border: 6px solid #ff0000 !important; }
 .success-effect, .success-effect .pokedex-head, .success-effect .screen-area { animation: flash-green 0.5s ease-out; }
@@ -161,7 +147,7 @@ body {
 .nav-btn:hover { background: #d32f2f; }
 .nav-btn.active { background: #ff5252; transform: scale(1.1); }
 
-/* --- ADMIN PANEL --- */
+/* --- ADMIN PANEL (DESKTOP) --- */
 .admin-container { width: 100%; max-width: 900px; background: #2c2c2c; color: white; border: 4px solid var(--border-black); border-radius: 15px; padding: 20px; margin-top: 20px; font-family: 'Press Start 2P', sans-serif; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 10; }
 .admin-card { background: #3a3a3a; border: 1px solid #555; border-radius: 6px; padding: 15px; margin-bottom: 20px; }
 .adm-title { font-size: 0.8em; margin-bottom: 10px; display:block; text-transform: uppercase; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1); }
@@ -196,3 +182,75 @@ body {
 .btn-modal { padding: 10px 20px; border: 2px solid var(--border-black); cursor: pointer; font-family: 'Press Start 2P'; font-size: 0.6em; }
 .btn-green { background: #4caf50; color: white; }
 .btn-red { background: #f44336; color: white; }
+
+
+/* ==========================================================================
+   RESPONSIVIDADE AVANÇADA (MOBILE)
+   ========================================================================== */
+@media (max-width: 600px) {
+    /* Ajustes Gerais do Corpo */
+    body { padding: 0; }
+    
+    /* Container Principal Fluido */
+    .pokedex-container {
+        width: 100%; 
+        height: auto; /* Altura automática para não cortar conteúdo */
+        min-height: 100vh; /* Ocupa pelo menos a tela toda */
+        border-radius: 0; 
+        border: none;
+        margin-bottom: 0;
+    }
+
+    /* Cabeçalho Reduzido */
+    .pokedex-head { height: 140px; }
+    .lens-blue { width: 70px; height: 70px; top: 20px; left: 20px; }
+    .led-container { left: 110px; top: 30px; }
+    .speaker-grill { display: none; }
+
+    /* Tela com menos padding para aproveitar espaço */
+    .screen-area { padding: 10px; }
+    .info-panel { padding: 10px; border-radius: 10px; }
+    .rpg-title { font-size: 0.8em; }
+
+    /* Admin Panel Responsivo (Empilhamento) */
+    .admin-container {
+        width: 100%;
+        border-radius: 0;
+        border: none;
+        border-top: 4px solid #000;
+        margin-top: 0;
+        padding-bottom: 40px; /* Espaço extra no final */
+    }
+
+    /* Transformar Grids em Colunas no Mobile */
+    .grid-team, 
+    .grid-missions, 
+    .grid-falhas, 
+    .grid-badges, 
+    .grid-shop {
+        display: flex;
+        flex-direction: column; /* Empilha os itens verticalmente */
+        gap: 5px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #555; /* Divisória entre itens */
+    }
+
+    /* Ajuste de Inputs e Botões no Mobile */
+    .admin-input, .btn-search, .btn-mini {
+        width: 100%; /* Ocupa a largura total */
+        margin-bottom: 5px;
+    }
+    
+    /* Esconder labels de cabeçalho se existirem (opcional, dependendo do HTML) */
+    .admin-header-label { display: none; }
+
+    /* Badges no Admin */
+    .grid-badges {
+        align-items: flex-start;
+    }
+    .slot-label {
+        margin-bottom: 5px;
+        color: var(--adm-yellow);
+    }
+}
