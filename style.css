@@ -17,7 +17,7 @@
 }
 
 /* --- RESET --- */
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 ::-webkit-scrollbar { width: 10px; }
 ::-webkit-scrollbar-track { background: #1a1a1a; }
 ::-webkit-scrollbar-thumb { background: #555; border-radius: 5px; }
@@ -29,6 +29,7 @@ body {
     min-height: 100vh;
     background-color: var(--bg-dark); 
     position: relative;
+    overflow-x: hidden;
 }
 
 /* --- BACKGROUND FIXO --- */
@@ -41,7 +42,7 @@ body {
     transform: scale(1.05);
 }
 
-/* --- POKÉDEX CORPO --- */
+/* --- POKÉDEX CORPO (PADRÃO DESKTOP) --- */
 .pokedex-container {
     width: 100%; max-width: 900px;
     height: 1000px;
@@ -153,8 +154,9 @@ body {
 .adm-title { font-size: 0.8em; margin-bottom: 10px; display:block; text-transform: uppercase; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.1); }
 .c-blue { color: var(--adm-blue); } .c-green { color: var(--adm-green); } .c-red { color: var(--adm-red); } .c-yellow { color: var(--adm-yellow); } .c-purple { color: var(--adm-purple); }
 
-/* GRIDS DO ADMIN */
-.grid-team { display: grid; grid-template-columns: 15% 10% 37.5% 37.5%; gap: 10px; align-items: center; margin-bottom: 8px; }
+/* GRIDS DO ADMIN (PC) */
+/* CORREÇÃO AQUI: Mudamos de % para FR para evitar vazamento com gap */
+.grid-team { display: grid; grid-template-columns: 1.5fr 1fr 3.5fr 3.5fr; gap: 10px; align-items: center; margin-bottom: 8px; }
 .grid-missions { display: grid; grid-template-columns: 2fr 50px 60px 60px 140px 110px 40px; gap: 10px; align-items: center; margin-bottom: 8px; }
 .grid-falhas { display: grid; grid-template-columns: 2fr 80px 60px 40px; gap: 10px; align-items: center; margin-bottom: 8px; }
 .grid-badges { display: grid; grid-template-columns: 110px 2fr 80px 1fr; gap: 10px; align-items: center; margin-bottom: 8px; }
@@ -183,74 +185,53 @@ body {
 .btn-green { background: #4caf50; color: white; }
 .btn-red { background: #f44336; color: white; }
 
-
 /* ==========================================================================
-   RESPONSIVIDADE AVANÇADA (MOBILE)
+   RESPONSIVIDADE (MOBILE) - AJUSTES PARA NÃO VAZAR
    ========================================================================== */
 @media (max-width: 600px) {
-    /* Ajustes Gerais do Corpo */
     body { padding: 0; }
     
-    /* Container Principal Fluido */
+    /* 1. Reset da Pokédex para crescer (Height Auto) */
     .pokedex-container {
         width: 100%; 
-        height: auto; /* Altura automática para não cortar conteúdo */
-        min-height: 100vh; /* Ocupa pelo menos a tela toda */
-        border-radius: 0; 
-        border: none;
+        height: auto; /* IMPORTANTE: Deixa crescer com os inputs */
+        min-height: 100vh;
+        border-radius: 0; border: none;
         margin-bottom: 0;
     }
-
-    /* Cabeçalho Reduzido */
+    
     .pokedex-head { height: 140px; }
     .lens-blue { width: 70px; height: 70px; top: 20px; left: 20px; }
     .led-container { left: 110px; top: 30px; }
     .speaker-grill { display: none; }
 
-    /* Tela com menos padding para aproveitar espaço */
-    .screen-area { padding: 10px; }
-    .info-panel { padding: 10px; border-radius: 10px; }
-    .rpg-title { font-size: 0.8em; }
-
-    /* Admin Panel Responsivo (Empilhamento) */
-    .admin-container {
-        width: 100%;
-        border-radius: 0;
-        border: none;
-        border-top: 4px solid #000;
-        margin-top: 0;
-        padding-bottom: 40px; /* Espaço extra no final */
-    }
-
-    /* Transformar Grids em Colunas no Mobile */
+    /* 2. Transformar tabelas em colunas */
     .grid-team, 
     .grid-missions, 
     .grid-falhas, 
     .grid-badges, 
     .grid-shop {
         display: flex;
-        flex-direction: column; /* Empilha os itens verticalmente */
-        gap: 5px;
-        margin-bottom: 20px;
+        flex-direction: column; /* Empilha os campos */
+        gap: 8px; /* Espaço entre campos */
+        margin-bottom: 25px;
         padding-bottom: 15px;
-        border-bottom: 1px solid #555; /* Divisória entre itens */
+        border-bottom: 2px dashed #555; /* Linha divisória */
     }
 
-    /* Ajuste de Inputs e Botões no Mobile */
-    .admin-input, .btn-search, .btn-mini {
-        width: 100%; /* Ocupa a largura total */
-        margin-bottom: 5px;
-    }
+    /* 3. Inputs ocupando 100% da largura */
+    .admin-input { width: 100%; height: 45px; margin-bottom: 5px; }
+    .btn-search, .btn-mini { width: 100%; height: 45px; margin-bottom: 5px; }
+
+    /* 4. Esconder Labels de Tabela (Não fazem sentido em lista) */
+    .admin-header { display: none; }
     
-    /* Esconder labels de cabeçalho se existirem (opcional, dependendo do HTML) */
-    .admin-header-label { display: none; }
-
-    /* Badges no Admin */
-    .grid-badges {
-        align-items: flex-start;
-    }
-    .slot-label {
-        margin-bottom: 5px;
-        color: var(--adm-yellow);
+    /* 5. Ajustes Específicos */
+    .admin-container {
+        margin: 0; border: none; width: 100%; 
+        padding-bottom: 50px; 
+        border-top: 4px solid #000;
+        border-radius: 0;
+        overflow-x: hidden; /* Corta vazamento horizontal */
     }
 }
